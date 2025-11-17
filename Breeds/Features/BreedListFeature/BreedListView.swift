@@ -14,6 +14,12 @@ struct BreedListView: View {
                     BreedsEmptyView()
                 } else {
                     ScrollView {
+                        SearchBar(
+                            text: Binding(
+                                get: { store.searchQuery },
+                                set: { store.send(.searchQueryChanged($0)) }
+                            )
+                        )
                         LazyVStack {
                             ForEachStore(
                                 self.store.scope(state: \.breeds, action: \.breeds)

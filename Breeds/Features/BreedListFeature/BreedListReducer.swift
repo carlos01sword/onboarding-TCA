@@ -12,6 +12,7 @@ struct BreedListReducer {
         var detail: DetailReducer.State?
         var currentPage: Int = 0
         var canLoadMore: Bool = true
+        var searchQuery: String = ""
 
         @Presents var alert: AlertState<Action.Alert>?
 
@@ -36,6 +37,7 @@ struct BreedListReducer {
         case dismissDetail
         case fetchBreeds
         case loadMore
+        case searchQueryChanged(String)
 
         @CasePathable
         enum Alert: Equatable{}
@@ -114,6 +116,10 @@ struct BreedListReducer {
                 return .none
 
             case .breeds, .detail:
+                return .none
+
+            case let .searchQueryChanged(query):
+                state.searchQuery = query
                 return .none
             }
         }
