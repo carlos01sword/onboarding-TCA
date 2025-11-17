@@ -9,7 +9,7 @@ struct AverageTabView: View {
         if !breeds.isEmpty {
             let averageLifeSpan = AverageHelper.averageLifeSpan(from: breeds)
 
-            Text("Average: \(averageLifeSpan)")
+            Text("Average Life Span: \(averageLifeSpan)")
                 .font(.subheadline)
                 .padding(.horizontal)
                 .frame(height: .averageTabViewHeight)
