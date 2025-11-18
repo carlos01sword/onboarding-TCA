@@ -35,9 +35,9 @@ struct BreedCellReducer {
                 state.$favoriteBreeds.withLock { favorites in
                     if state.isFavorite {
                         _ = favorites.remove(id: state.breed.id)
-                        return
+                    } else {
+                        _ = favorites.append(state.breed)
                     }
-                    _ = favorites.append(state.breed)
                 }
                 return .none
 
