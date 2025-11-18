@@ -14,6 +14,12 @@ struct BreedListReducer {
         var canLoadMore: Bool = true
         var searchQuery: String = ""
 
+    
+        var filteredBreeds: IdentifiedArrayOf<BreedCellReducer.State> {
+            guard !searchQuery.isEmpty else { return breeds }
+            return IdentifiedArray(uniqueElements: breeds.filter { $0.breed.name.localizedCaseInsensitiveContains(searchQuery) })
+        }
+
         @Presents var alert: AlertState<Action.Alert>?
 
         @ObservationStateIgnored

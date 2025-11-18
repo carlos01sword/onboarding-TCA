@@ -6,44 +6,52 @@ struct BreedListView: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                if store.breeds.isEmpty && store.isLoading {
-                    ProgressView("Loading breeds...")
-                        .progressViewStyle(CircularProgressViewStyle())
-                } else if store.breeds.isEmpty{
-                    BreedsEmptyView()
-                } else {
-                    ScrollView {
-                        SearchBar(
-                            text: Binding(
-                                get: { store.searchQuery },
-                                set: { store.send(.searchQueryChanged($0)) }
-                            )
-                        )
-                        LazyVStack {
-                            ForEachStore(
-                                self.store.scope(state: \.breeds, action: \.breeds)
-                            ) { breedStore in
-                                let breed = breedStore.state.breed
-                                Button {
-                                    store.send(.breedTapped(breed))
-                                } label: {
-                                    BreedRowView(store: breedStore)
-                                }
-                                .onAppear {
-                                    if breed.id == store.breeds.last?.id {
-                                        store.send(.loadMore)
+            VStack {
+                if !store.breeds.isEmpty {
+                    SearchBar(
+                        text: $store.searchQuery.sending(\.searchQueryChanged)
+                    )
+                    .padding(.bottom, ConstantsUI.defaultVerticalSpacing)
+                }
+
+                ZStack {
+                    if store.breeds.isEmpty && store.isLoading {
+                        ProgressView("Loading breeds...")
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+
+                    } else if store.breeds.isEmpty {
+                        BreedsEmptyView()
+
+                    } else if store.filteredBreeds.isEmpty && !store.searchQuery.isEmpty {
+                        SearchEmptyStateView(searchText: store.searchQuery)
+
+                    } else {
+                        ScrollView {
+                            LazyVStack {
+                                ForEach(store.filteredBreeds.ids, id: \.self) { id in
+                                    if let childStore = store.scope(state: \.breeds[id: id], action: \.breeds[id: id]) {
+
+                                        BreedRowView(store: childStore)
+                                            .onTapGesture {
+                                                store.send(.breedTapped(childStore.state.breed))
+                                            }
+                                            .onAppear {
+                                                if store.searchQuery.isEmpty && id == store.breeds.last?.id {
+                                                    store.send(.loadMore)
+                                                }
+                                            }
                                     }
                                 }
+                                if store.isLoading && !store.breeds.isEmpty {
+                                    ProgressView()
+                                        .padding()
+                                }
                             }
-                            if store.isLoading && !store.breeds.isEmpty {
-                                ProgressView()
-                                    .padding()
-                            }
+                            .contentShape(Rectangle())
+                            .padding(.horizontal)
+                            .padding(.bottom, ConstantsUI.defaultVerticalSpacing)
                         }
-                        .contentShape(Rectangle())
-                        .padding(.horizontal)
-                        .padding(.vertical, ConstantsUI.defaultVerticalSpacing)
                     }
                 }
             }
@@ -54,11 +62,11 @@ struct BreedListView: View {
                 }
             }
             .navigationDestination(
-                item: Binding(
-                    get: { store.detail?.cell.breed },
-                    set: { _ in store.send(.dismissDetail) }
+                isPresented: Binding(
+                    get: { store.detail != nil },
+                    set: { if !$0 { store.send(.dismissDetail) } }
                 )
-            ) { _ in
+            ) {
                 if let detailStore = store.scope(state: \.detail, action: \.detail) {
                     DetailView(store: detailStore)
                 }
