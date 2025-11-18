@@ -13,12 +13,7 @@ struct BreedListReducer {
         var currentPage: Int = 0
         var canLoadMore: Bool = true
         var searchQuery: String = ""
-
-    
-        var filteredBreeds: IdentifiedArrayOf<BreedCellReducer.State> {
-            guard !searchQuery.isEmpty else { return breeds }
-            return IdentifiedArray(uniqueElements: breeds.filter { $0.breed.name.localizedCaseInsensitiveContains(searchQuery) })
-        }
+        var filteredBreeds: IdentifiedArrayOf<BreedCellReducer.State> = []
 
         @Presents var alert: AlertState<Action.Alert>?
 
@@ -31,6 +26,7 @@ struct BreedListReducer {
         ) {
             self.breeds = breeds
             self._favoriteBreeds = favoriteBreeds
+            self.filteredBreeds = breeds
         }
     }
 
@@ -87,6 +83,8 @@ struct BreedListReducer {
                 }
 
                 state.currentPage += 1
+
+                filterBreeds(state: &state)
                 return .none
 
             case .breedsResponse(.failure(let error)):
@@ -126,6 +124,7 @@ struct BreedListReducer {
 
             case let .searchQueryChanged(query):
                 state.searchQuery = query
+                filterBreeds(state: &state)
                 return .none
             }
         }
@@ -141,6 +140,16 @@ struct BreedListReducer {
                     TaskResult { try await breedsClient.fetchBreeds(page, 10) }
                 )
             )
+        }
+    }
+
+    private func filterBreeds(state: inout State){
+        if state.searchQuery.isEmpty {
+            state.filteredBreeds = state.breeds
+        } else {
+            state.filteredBreeds = state.breeds.filter{
+                $0.breed.name.localizedCaseInsensitiveContains(state.searchQuery)
+            }
         }
     }
 }
