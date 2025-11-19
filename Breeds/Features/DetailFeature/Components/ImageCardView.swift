@@ -3,10 +3,11 @@ import SwiftUI
 struct ImageCardView: View {
     let id: String?
     let isLoading: Bool
+    let image: UIImage?
 
     var body: some View {
         Group {
-            if let image = ImageCache.getSynchronously(for: id) {
+            if let image {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
@@ -26,7 +27,8 @@ struct ImageCardView: View {
 #Preview {
     ImageCardView(
         id: MockData.sampleBreed.referenceImageID,
-        isLoading: false
+        isLoading: false,
+        image: UIImage(systemName: "pawprint.fill")
     )
     .frame(width: 300, height: 300)
     .cardImageStyle()

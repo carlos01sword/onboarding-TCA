@@ -8,6 +8,7 @@ struct BreedCellReducer {
         let breed: Breed
         var isFavorite: Bool { favoriteBreeds.contains(where: { $0.id == breed.id }) }
         var isLoadingImage = false
+        var image: UIImage?
 
         nonisolated var id: String { breed.id }
 
@@ -55,7 +56,8 @@ struct BreedCellReducer {
                     )
                 }
 
-            case .imageResponse(.success):
+            case .imageResponse(.success(let image)):
+                state.image = image
                 state.isLoadingImage = false
                 return .none
 

@@ -2,19 +2,19 @@ import ComposableArchitecture
 import SwiftUI
 
 struct ImageClient {
-    var fetchImage: @Sendable (_ id: String) async throws -> UIImage
+    var fetchImage: @Sendable @MainActor (_ id: String) async throws -> UIImage
 }
 
 extension ImageClient: DependencyKey {
     static let liveValue = ImageClient( fetchImage: { id in
-        @Shared(.imageDiskCache) var diskCache
+        @Dependency(\.imageCache) var cache
 
-        if let cachedImage = await ImageCache.getCachedImage(for: id, diskCache: diskCache) {
-            return cachedImage
+        if let image =  cache.getCachedImage(id) {
+            return image
         }
 
         do {
-            let endpoint = await Endpoint.image(id: id)
+            let endpoint =  Endpoint.image(id: id)
             let data = try await NetworkClient.fetch(endpoint, isImage: true)
 
             let catImage = try JSONDecoder().decode(CatImage.self, from: data)
@@ -31,13 +31,7 @@ extension ImageClient: DependencyKey {
                 throw NetworkError.decoding(NSError(domain: "InvalidImage", code: -1))
             }
 
-            let diskCacheCopy = $diskCache
-
-            await MainActor.run {
-                diskCacheCopy.withLock { cache in
-                    ImageCache.setCachedImage(image, id: id, diskCache: &cache, data: imageData)
-                }
-            }
+            cache.setCachedImage(image, id, imageData)
 
             return image
 

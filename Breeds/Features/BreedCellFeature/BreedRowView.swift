@@ -7,7 +7,7 @@ struct BreedRowView: View {
 
     var body: some View {
         HStack(spacing: .rowSpacing) {
-            ImageCardView(id: store.breed.referenceImageID, isLoading: store.isLoadingImage)
+            ImageCardView(id: store.breed.referenceImageID, isLoading: store.isLoadingImage, image: store.image)
                 .foregroundColor(.gray.opacity(ConstantsUI.darkerOpacity))
                 .scaledToFill()
                 .frame(width: .imageRowFrameSize , height: .imageRowFrameSize)
