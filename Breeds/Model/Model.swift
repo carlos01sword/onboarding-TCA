@@ -1,5 +1,6 @@
 import ComposableArchitecture
 import SwiftUI
+import Sharing
 
 nonisolated struct Breed: Equatable, Identifiable, Codable {
     let id: String
@@ -19,6 +20,16 @@ extension SharedKey where Self == FileStorageKey<IdentifiedArrayOf<Breed>>.Defau
       default: []
     ]
   }
+}
+
+typealias ImageDiskCache = [String: Data]
+
+extension SharedKey where Self == FileStorageKey<ImageDiskCache>.Default {
+    nonisolated static var imageDiskCache: Self {
+        Self[.fileStorage(.cachesDirectory.appending(component: "image-disk-cache.json")),
+             default: [:]
+        ]
+    }
 }
 
 enum MockData {

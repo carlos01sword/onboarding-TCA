@@ -6,9 +6,10 @@ struct ImageClient {
 }
 
 extension ImageClient: DependencyKey {
-    static let liveValue = ImageClient { id in
+    static let liveValue = ImageClient( fetchImage: { id in
+        @Shared(.imageDiskCache) var diskCache
 
-        if let cachedImage = await ImageCache.getCachedImage(for: id) {
+        if let cachedImage = await ImageCache.getCachedImage(for: id, diskCache: diskCache) {
             return cachedImage
         }
 
@@ -30,7 +31,13 @@ extension ImageClient: DependencyKey {
                 throw NetworkError.decoding(NSError(domain: "InvalidImage", code: -1))
             }
 
-            await ImageCache.setCachedImage(image, data: imageData, for: id)
+            let diskCacheCopy = $diskCache
+
+            await MainActor.run {
+                diskCacheCopy.withLock { cache in
+                    ImageCache.setCachedImage(image, id: id, diskCache: &cache, data: imageData)
+                }
+            }
 
             return image
 
@@ -42,6 +49,7 @@ extension ImageClient: DependencyKey {
             }
         }
     }
+  )
 }
 
 extension ImageClient: TestDependencyKey {

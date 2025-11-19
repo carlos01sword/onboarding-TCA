@@ -6,7 +6,7 @@ struct ImageCardView: View {
 
     var body: some View {
         Group {
-            if let image = ImageCache.getCachedImage(for: id) {
+            if let image = ImageCache.getSynchronously(for: id) {
                 Image(uiImage: image)
                     .resizable()
                     .scaledToFill()
