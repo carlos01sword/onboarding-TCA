@@ -15,7 +15,7 @@ struct AverageCalculationTests {
         let state = MockData.makeState(favorites: breeds.elements)
 
         let average = AverageHelper.averageLifeSpan(from: state.favoriteBreeds)
-        // result: the average should be (15 + 12 + 18) / 3 = 15
+        // result: the average should be calculated from the maximum value of each life span range: (15 + 12 + 18) / 3 = 15
         #expect(average == 15)
     }
 }
