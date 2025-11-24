@@ -1,7 +1,7 @@
 import ComposableArchitecture
 import Foundation
 
-struct AverageHelper: Codable, Equatable {
+struct AverageHelper {
     static func averageLifeSpan(from breeds: IdentifiedArrayOf<Breed>) -> Int {
 
         guard !breeds.isEmpty else {
