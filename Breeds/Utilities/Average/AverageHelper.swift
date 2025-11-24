@@ -8,25 +8,21 @@ struct AverageHelper {
             return 0
         }
 
-        var total: Int = 0
-        var counter: Int = 0
-
-        for breed in breeds {
+        let maxValues = breeds.compactMap { breed -> Int? in
             let values = breed.lifeSpan
                 .split(separator: "-")
                 .map { $0.trimmingCharacters(in: .whitespaces) }
-
-            if let max = values.last,
-               let maxInt = Int(max){
-                total += maxInt
-                counter += 1
+            if let max = values.last, let maxInt = Int(max) {
+                return maxInt
             }
+            return nil
         }
 
-        guard counter > 0 else {
+        guard !maxValues.isEmpty else {
             return 0
         }
 
-        return total / counter
+        let total = maxValues.reduce(0, +)
+        return total / maxValues.count
     }
 }
