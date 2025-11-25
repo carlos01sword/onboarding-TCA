@@ -64,4 +64,29 @@ struct SearchFunctionalityTests {
             )
         }
     }
+
+    @Test
+    func testSearchBreedMultipleWordsWithMatch() async throws {
+        let store = TestStore(
+            initialState: MockData.makeState(
+                breeds: [MockData.breed1, MockData.breed2]
+            )
+        ) { BreedListReducer() }
+
+        await store.send(.searchQueryChanged("breed")) {
+            $0.searchQuery = "breed"
+            $0.filteredBreeds = IdentifiedArray(
+                uniqueElements: [
+                    BreedCellReducer.State(
+                        breed: MockData.breed1,
+                        favoriteBreeds: $0.$favoriteBreeds
+                    ),
+                    BreedCellReducer.State(
+                        breed: MockData.breed2,
+                        favoriteBreeds: $0.$favoriteBreeds
+                    )
+                ]
+            )
+        }
+    }
 }
