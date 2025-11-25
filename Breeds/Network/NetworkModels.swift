@@ -21,3 +21,8 @@ extension BreedDTO {
         )
     }
 }
+
+nonisolated struct CatImage: Decodable {
+    let id: String
+    let url: String
+}

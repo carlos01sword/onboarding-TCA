@@ -6,16 +6,20 @@ struct BreedListReducer {
 
     @ObservableState
     struct State: Equatable {
-        var breeds: IdentifiedArrayOf<Breed> = []
+        var breeds: IdentifiedArrayOf<BreedCellReducer.State> = []
         var isLoading: Bool = false
         var errorMessage: String?
         var detail: DetailReducer.State?
+        var currentPage: Int = 0
+        var canLoadMore: Bool = true
+
+        @Presents var alert: AlertState<Action.Alert>?
 
         @ObservationStateIgnored
         @Shared(.favoriteBreeds) var favoriteBreeds
 
         init(
-            breeds: IdentifiedArrayOf<Breed> = [],
+            breeds: IdentifiedArrayOf<BreedCellReducer.State> = [],
             favoriteBreeds: Shared<IdentifiedArrayOf<Breed>> = Shared(.favoriteBreeds)
         ) {
             self.breeds = breeds
@@ -24,75 +28,107 @@ struct BreedListReducer {
     }
 
     enum Action: Equatable {
-        case fetchBreeds
+        case alert(PresentationAction<Alert>)
+        case breeds(IdentifiedAction<Breed.ID, BreedCellReducer.Action>)
         case breedsResponse(TaskResult<[Breed]>)
-        case breedFavoriteToggled(id: Breed.ID)
         case breedTapped(Breed)
-        case dismissDetail
         case detail(DetailReducer.Action)
+        case dismissDetail
+        case fetchBreeds
+        case loadMore
+
+        @CasePathable
+        enum Alert: Equatable{}
     }
 
     @Dependency(\.breedsClient) var breedsClient
- 
+
     var body: some Reducer<State, Action> {
         Reduce { state, action in
             switch action {
+
             case .fetchBreeds:
                 state.isLoading = true
                 state.errorMessage = nil
-                return .run { send in
-                    do {
-                        let breeds = try await breedsClient.fetchBreeds()
-                        await send(.breedsResponse(.success(breeds)))
-                    } catch {
-                        await send(.breedsResponse(.failure(error)))
-                    }
-                }
-                
+                state.currentPage = 0
+                state.canLoadMore = true
+
+                return fetchBreeds(page: 0)
+
+            case .loadMore:
+                guard !state.isLoading, state.canLoadMore else { return .none }
+                state.isLoading = true
+                state.errorMessage = nil
+                let nextPage = state.currentPage + 1
+
+                return fetchBreeds(page: nextPage)
+
             case .breedsResponse(.success(let breeds)):
                 state.isLoading = false
-                state.breeds = IdentifiedArray(uniqueElements: breeds)
+                state.canLoadMore = !breeds.isEmpty
+
+                let newItems = breeds.map { BreedCellReducer.State(
+                    breed: $0,
+                    favoriteBreeds: state.$favoriteBreeds)
+                }
+
+                if state.currentPage == 0 {
+                    state.breeds = IdentifiedArray(uniqueElements: newItems)
+                } else {
+                    state.breeds.append(contentsOf: newItems)
+                }
+
+                state.currentPage += 1
                 return .none
-                
+
             case .breedsResponse(.failure(let error)):
                 state.isLoading = false
-                if let networkError = error as? NetworkError {
-                    state.errorMessage = networkError.description
-                } else {
-                    state.errorMessage = error.localizedDescription
+                let errorDescription = (error as? NetworkError)?.description ?? error.localizedDescription
+
+                if state.breeds.isEmpty {
+                    state.errorMessage = errorDescription
+                    state.canLoadMore = false
+                    return .none
                 }
-                return .none
-                
-            case .breedFavoriteToggled(let id):
-                if state.favoriteBreeds.contains(where: { $0.id == id }) {
-                    _ = state.$favoriteBreeds.withLock { favorites in
-                        favorites.remove(id: id)
-                    }
-                } else if let breed = state.breeds[id: id] {
-                    _ = state.$favoriteBreeds.withLock { favorites in
-                        favorites.append(breed)
-                    }
+
+                state.canLoadMore = false
+                state.alert = AlertState {
+                    TextState("Network Error")
+                } message: {
+                    TextState("Could not load more breeds. Please check your connection.")
                 }
                 return .none
 
             case .breedTapped(let breed):
-                state.detail = DetailReducer.State(breed:breed)
+                guard let existingCellState = state.breeds[id: breed.id] else {
+                    return .none
+                }
+                state.detail = DetailReducer.State(cell: existingCellState)
                 return .none
 
             case .dismissDetail:
                 state.detail = nil
                 return .none
 
-            case .detail:
+            case .alert:
+                return .none
+
+            case .breeds, .detail:
                 return .none
             }
         }
+        .forEach(\.breeds, action: \.breeds) { BreedCellReducer() }
         .ifLet(\.detail, action: \.detail) { DetailReducer() }
+        .ifLet(\.alert, action: \.alert)
     }
-}
 
-extension BreedListReducer.State {
-    func isFavorite(_ breed: Breed) -> Bool {
-        favoriteBreeds.contains(where: { $0.id == breed.id })
+    private func fetchBreeds(page: Int) -> Effect<Action> {
+        .run { send in
+            await send(
+                .breedsResponse(
+                    TaskResult { try await breedsClient.fetchBreeds(page, 10) }
+                )
+            )
+        }
     }
 }

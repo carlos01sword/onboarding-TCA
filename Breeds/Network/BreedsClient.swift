@@ -2,13 +2,13 @@ import ComposableArchitecture
 import Foundation
 
 struct BreedsClient {
-    var fetchBreeds: @Sendable () async throws -> [Breed]
+    var fetchBreeds: @Sendable (_ page: Int, _ limit: Int) async throws -> [Breed]
 }
 
 extension BreedsClient: DependencyKey {
-    static let liveValue = BreedsClient {
+    static let liveValue = BreedsClient { page, limit in
         do {
-            let data = try await NetworkClient.fetch(.breeds)
+            let data = try await NetworkClient.fetch(.breeds(limit: limit, page: page))
             do {
                 let decoder = JSONDecoder()
                 decoder.keyDecodingStrategy = .convertFromSnakeCase
@@ -28,7 +28,8 @@ extension BreedsClient: DependencyKey {
 
 extension BreedsClient: TestDependencyKey {
     static let testValue = Self (
-        fetchBreeds: { [] }
+        fetchBreeds: { _, _ in
+            [] }
     )
 }
 

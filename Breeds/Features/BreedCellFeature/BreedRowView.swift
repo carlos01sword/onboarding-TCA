@@ -3,26 +3,23 @@ import SwiftUI
 
 struct BreedRowView: View {
 
-    var breed: Breed
-    var isFavorite: Bool
-    var onFavoriteTapped: () -> Void
+    let store: StoreOf<BreedCellReducer>
 
     var body: some View {
         HStack(spacing: .rowSpacing) {
-            Image(systemName: "pawprint.fill")
-                .resizable()
+            ImageCardView(id: store.breed.referenceImageID, isLoading: store.isLoadingImage, image: store.image)
                 .foregroundColor(.gray.opacity(ConstantsUI.darkerOpacity))
-                .scaledToFit()
+                .scaledToFill()
                 .frame(width: .imageRowFrameSize , height: .imageRowFrameSize)
                 .clipShape(RoundedRectangle(cornerRadius: .imageRowCornerRadius))
 
-            Text(breed.name)
+            Text(store.breed.name)
                 .font(.headline)
                 .foregroundColor(.primary)
 
             Spacer()
-            Button(action: onFavoriteTapped){
-                Image(systemName: isFavorite ? "star.fill" : "star")
+            Button(action: { store.send(.favoriteButtonTapped) }){
+                Image(systemName: store.isFavorite ? "star.fill" : "star")
                     .foregroundColor(.yellow)
             }
         }
@@ -32,6 +29,9 @@ struct BreedRowView: View {
                 .fill(Color(.systemBackground))
                 .shadow()
         )
+        .onAppear {
+            store.send(.fetchImage)
+        }
     }
 }
 
@@ -44,14 +44,14 @@ private extension CGFloat {
 
 #if DEBUG
 #Preview("Interactive Favorite Toggle") {
-  @Previewable @State var isFavorite: Bool = false
-
     BreedRowView(
-        breed: MockData.sampleBreed,
-        isFavorite: isFavorite,
-        onFavoriteTapped: {
-            isFavorite.toggle()
-        }
+        store: Store(
+            initialState: BreedCellReducer.State(
+                breed: MockData.sampleBreed,
+                favoriteBreeds: Shared(value: IdentifiedArray(uniqueElements: [] as [Breed]))
+            ),
+            reducer: { BreedCellReducer() }
+        )
     )
     .padding()
 }

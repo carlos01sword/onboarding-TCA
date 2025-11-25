@@ -6,20 +6,26 @@ struct FavoriteView: View {
 
     var body: some View {
         NavigationStack {
-            if store.favorites.isEmpty{
+            if store.favoriteBreeds.isEmpty {
                 FavoriteEmptyStateView()
             }
             else {
                 ScrollView {
-                    ForEach(store.favorites) { breed in
-                        Button {
-                            store.send(.breedTapped(breed))
-                        } label: {
-                            BreedRowView(
-                                breed: breed,
-                                isFavorite: true,
-                                onFavoriteTapped: { store.send(.breedFavoriteToggled(id: breed.id)) }
-                            )
+                    LazyVStack {
+                        ForEach(store.favoriteBreeds) { breed in
+                            Button {
+                                store.send(.breedTapped(breed))
+                            } label: {
+                                BreedRowView(
+                                    store: Store(
+                                        initialState: BreedCellReducer.State(
+                                            breed: breed,
+                                            favoriteBreeds: store.$favoriteBreeds
+                                        ),
+                                        reducer: { BreedCellReducer() }
+                                    )
+                                )
+                            }
                         }
                     }
                     .contentShape(Rectangle())
@@ -29,7 +35,7 @@ struct FavoriteView: View {
                 .navigationTitle("⭐ Favorites")
                 .navigationDestination(
                     item: Binding(
-                        get: { store.detail?.breed },
+                        get: { store.detail?.cell.breed },
                         set: { _ in store.send(.dismissDetail) }
                     )
                 ) { _ in
@@ -42,11 +48,12 @@ struct FavoriteView: View {
     }
 }
 
-
 #if DEBUG
     #Preview {
         FavoriteView(
-            store: Store(initialState: FavoriteReducer.State()) {
+            store: Store(initialState: FavoriteReducer.State(
+                favoriteBreeds: Shared(value: IdentifiedArray(uniqueElements: [] as [Breed]))
+            )) {
                 FavoriteReducer()
             }
         )

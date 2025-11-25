@@ -12,11 +12,12 @@ struct BreedListReducerTests {
         let store = TestStore(initialState: MockData.makeState(breeds: [breed])) {
             BreedListReducer()
         }
-        await store.send(.breedFavoriteToggled(id: breed.id)) {
+
+        await store.send(.breeds(.element(id: breed.id, action: .favoriteButtonTapped))) {
             $0.$favoriteBreeds.withLock { $0.append(breed) }
         }
     }
-    
+
     @Test
     func togglingBreedRemovesFromFavorites() async {
         let favorited = MockData.favoritedBreed1
@@ -25,20 +26,9 @@ struct BreedListReducerTests {
         ) {
             BreedListReducer()
         }
-        
-        await store.send(.breedFavoriteToggled(id: favorited.id)) {
+
+        await store.send(.breeds(.element(id: favorited.id, action: .favoriteButtonTapped))) {
             $0.$favoriteBreeds.withLock { $0.removeAll() }
         }
-    }
-    
-    @Test
-    func breedFavoriteToggled_IgnoresUnknownID() async {
-        let breed = MockData.breed1
-        let initialState = MockData.makeState(breeds: [breed])
-        
-        let store = TestStore(initialState: initialState) {
-            BreedListReducer()
-        }
-        await store.send(.breedFavoriteToggled(id: "unknown-id"))
     }
 }
