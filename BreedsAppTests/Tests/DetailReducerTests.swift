@@ -54,6 +54,7 @@ struct DetailFeatureFavoriteFunctionalityTests {
         }
         await store.receive(.cell(.imageResponse(TaskResult<UIImage>.success(mockImage)))) {
             $0.cell.isLoadingImage = false
+            $0.cell.image = mockImage
         }
     }
 
@@ -79,6 +80,7 @@ struct DetailFeatureFavoriteFunctionalityTests {
         }
         await store.receive(.cell(.imageResponse(TaskResult<UIImage>.failure(MockData.TestError())))) {
             $0.cell.isLoadingImage = false
+            $0.cell.image = nil
         }
     }
 }

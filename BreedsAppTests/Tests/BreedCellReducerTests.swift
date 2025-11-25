@@ -67,6 +67,7 @@ struct BreedCellReducerTests {
 
         await store.receive(.imageResponse(.success(mockImage))) {
             $0.isLoadingImage = false
+            $0.image = mockImage
         }
     }
 }
