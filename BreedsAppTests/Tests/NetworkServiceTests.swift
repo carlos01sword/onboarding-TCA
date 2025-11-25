@@ -27,7 +27,7 @@ struct NetworkServiceTests{
             state.canLoadMore = true
             state.currentPage = 1
 
-            state.breeds = IdentifiedArray(
+            let breedStates = IdentifiedArray(
                 uniqueElements: mockBreeds.map { breed in
                     BreedCellReducer.State(
                         breed: breed,
@@ -35,6 +35,8 @@ struct NetworkServiceTests{
                     )
                 }
             )
+            state.breeds = breedStates
+            state.filteredBreeds = breedStates
         }
     }
 
