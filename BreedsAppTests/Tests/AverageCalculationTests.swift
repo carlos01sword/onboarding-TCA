@@ -18,4 +18,13 @@ struct AverageCalculationTests {
         // result: the average should be calculated from the maximum value of each life span range: (15 + 12 + 18) / 3 = 15
         #expect(average == 15)
     }
+
+    @Test func testEmptyFavoritesAverageLifeSpan() async throws {
+        let state = MockData.makeState(favorites: [])
+
+        let average = AverageHelper.averageLifeSpan(from: state.favoriteBreeds)
+        // No favorite breeds, the average should be 0
+        #expect(average == 0)
+
+    }
 }
