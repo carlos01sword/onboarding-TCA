@@ -89,4 +89,17 @@ struct SearchFunctionalityTests {
             )
         }
     }
+
+    @Test
+    func testEmptyQuerySearch() async throws {
+        let breeds = [MockData.breed1, MockData.breed2]
+        let store = TestStore(initialState: MockData.makeState(breeds: breeds)) {
+            BreedListReducer()
+        }
+
+        await store.send(.searchQueryChanged("")) {
+            $0.searchQuery = ""
+            $0.filteredBreeds = $0.breeds
+        }
+    }
 }
