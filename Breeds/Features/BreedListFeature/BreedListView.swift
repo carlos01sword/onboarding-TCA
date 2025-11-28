@@ -62,17 +62,11 @@ struct BreedListView: View {
                 }
             }
             .navigationDestination(
-                isPresented: Binding(
-                    get: { store.detail != nil },
-                    set: { if !$0 { store.send(.dismissDetail) } }
-                )
-            ) {
-                if let detailStore = store.scope(state: \.detail, action: \.detail) {
-                    DetailView(store: detailStore)
-                }
+                item: $store.scope(state: \.detail, action: \.detail)
+            ) { detailStore in
+                DetailView(store: detailStore)
             }
             .alert($store.scope(state: \.alert, action: \.alert))
-        }
     }
 }
 

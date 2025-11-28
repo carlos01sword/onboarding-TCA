@@ -9,7 +9,7 @@ struct BreedListReducer {
         var breeds: IdentifiedArrayOf<BreedCellReducer.State> = []
         var isLoading: Bool = false
         var errorMessage: String?
-        var detail: DetailReducer.State?
+        @Presents var detail: DetailReducer.State?
         var currentPage: Int = 0
         var canLoadMore: Bool = true
         var searchQuery: String = ""
@@ -35,8 +35,7 @@ struct BreedListReducer {
         case breeds(IdentifiedAction<Breed.ID, BreedCellReducer.Action>)
         case breedsResponse(TaskResult<[Breed]>)
         case breedTapped(Breed)
-        case detail(DetailReducer.Action)
-        case dismissDetail
+        case detail(PresentationAction<DetailReducer.Action>)
         case fetchBreeds
         case loadMore
         case searchQueryChanged(String)
@@ -112,10 +111,6 @@ struct BreedListReducer {
                 state.detail = DetailReducer.State(cell: existingCellState)
                 return .none
 
-            case .dismissDetail:
-                state.detail = nil
-                return .none
-
             case .alert:
                 return .none
 
@@ -129,7 +124,7 @@ struct BreedListReducer {
             }
         }
         .forEach(\.breeds, action: \.breeds) { BreedCellReducer() }
-        .ifLet(\.detail, action: \.detail) { DetailReducer() }
+        .ifLet(\.$detail, action: \.detail) { DetailReducer() }
         .ifLet(\.alert, action: \.alert)
     }
 
