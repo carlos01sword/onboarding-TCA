@@ -30,7 +30,7 @@ struct BreedListReducer {
         }
     }
 
-    enum Action: Equatable {
+    enum Action: Equatable,BindableAction {
         case alert(PresentationAction<Alert>)
         case breeds(IdentifiedAction<Breed.ID, BreedCellReducer.Action>)
         case breedsResponse(TaskResult<[Breed]>)
@@ -38,7 +38,7 @@ struct BreedListReducer {
         case detail(PresentationAction<DetailReducer.Action>)
         case fetchBreeds
         case loadMore
-        case searchQueryChanged(String)
+        case binding(BindingAction<State>)
 
         @CasePathable
         enum Alert: Equatable{}
@@ -47,6 +47,9 @@ struct BreedListReducer {
     @Dependency(\.breedsClient) var breedsClient
 
     var body: some Reducer<State, Action> {
+
+        BindingReducer()
+
         Reduce { state, action in
             switch action {
 
@@ -114,13 +117,13 @@ struct BreedListReducer {
             case .alert:
                 return .none
 
-            case .breeds, .detail:
-                return .none
-
-            case let .searchQueryChanged(query):
-                state.searchQuery = query
+            case .binding(\.searchQuery):
                 filterBreeds(state: &state)
                 return .none
+
+            case .breeds, .detail, .binding:
+                return .none
+
             }
         }
         .forEach(\.breeds, action: \.breeds) { BreedCellReducer() }

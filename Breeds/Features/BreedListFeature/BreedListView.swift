@@ -8,9 +8,7 @@ struct BreedListView: View {
         NavigationStack {
             VStack {
                 if !store.breeds.isEmpty {
-                    SearchBar(
-                        text: $store.searchQuery.sending(\.searchQueryChanged)
-                    )
+                    SearchBar(text: $store.searchQuery)
                     .padding(.bottom, ConstantsUI.defaultVerticalSpacing)
                 }
                 
