@@ -40,7 +40,7 @@ struct SearchFunctionalityTests {
     func testSearchBreedNoMatch() async throws {
         let store = TestStore(initialState: MockData.makeState()) { BreedListReducer() }
 
-        await store.send(.searchQueryChanged("CAT MEOW MEOW DOESNT EXIST")) {
+        await store.send(.binding(.set(\.searchQuery, "CAT MEOW MEOW DOESNT EXIST"))) {
             $0.searchQuery = "CAT MEOW MEOW DOESNT EXIST"
             $0.filteredBreeds = []
         }
@@ -52,7 +52,7 @@ struct SearchFunctionalityTests {
             initialState: MockData.makeState(breeds: [breed])
         ) { BreedListReducer() }
 
-        await store.send(.searchQueryChanged("Breed 1")) {
+        await store.send(.binding(.set(\.searchQuery,("Breed 1")))) {
             $0.searchQuery = "Breed 1"
             $0.filteredBreeds = IdentifiedArray(
                 uniqueElements: [
@@ -73,7 +73,7 @@ struct SearchFunctionalityTests {
             )
         ) { BreedListReducer() }
 
-        await store.send(.searchQueryChanged("breed")) {
+        await store.send(.binding(.set(\.searchQuery,("breed")))) {
             $0.searchQuery = "breed"
             $0.filteredBreeds = IdentifiedArray(
                 uniqueElements: [
@@ -97,7 +97,7 @@ struct SearchFunctionalityTests {
             BreedListReducer()
         }
 
-        await store.send(.searchQueryChanged("")) {
+        await store.send(.binding(.set(\.searchQuery,("")))) {
             $0.searchQuery = ""
             $0.filteredBreeds = $0.breeds
         }
