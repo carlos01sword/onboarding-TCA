@@ -7,13 +7,13 @@ struct BreedListView: View {
     var body: some View {
         NavigationStack {
             VStack {
-                if !store.breeds.isEmpty {
+                if store.hasBreeds {
                     SearchBar(text: $store.searchQuery)
                     .padding(.bottom, ConstantsUI.defaultVerticalSpacing)
                 }
                 
                 ZStack {
-                    if store.breeds.isEmpty && store.isLoading {
+                    if store.isLoadingPlaceholderVisible {
                         ProgressView("Loading breeds...")
                             .progressViewStyle(CircularProgressViewStyle())
                             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -21,7 +21,7 @@ struct BreedListView: View {
                     } else if store.breeds.isEmpty {
                         BreedsEmptyView()
                         
-                    } else if store.filteredBreeds.isEmpty && !store.searchQuery.isEmpty {
+                    } else if store.isSearchEmptyStateVisible {
                         SearchEmptyStateView(searchText: store.searchQuery)
                         
                     } else {

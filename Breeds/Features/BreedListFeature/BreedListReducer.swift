@@ -14,6 +14,10 @@ struct BreedListReducer {
         var canLoadMore: Bool = true
         var searchQuery: String = ""
         var filteredBreeds: IdentifiedArrayOf<BreedCellReducer.State> = []
+        var hasBreeds: Bool { !breeds.isEmpty }
+        var isLoadingPlaceholderVisible: Bool { breeds.isEmpty && isLoading }
+        var isSearchEmptyStateVisible: Bool { filteredBreeds.isEmpty && !searchQuery.isEmpty }
+
 
         @Presents var alert: AlertState<Action.Alert>?
 
