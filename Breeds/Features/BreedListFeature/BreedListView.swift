@@ -32,7 +32,7 @@ struct BreedListView: View {
                                         
                                         BreedRowView(store: childStore)
                                             .onTapGesture {
-                                                store.send(.breedTapped(childStore.state.breed))
+                                                store.send(.breedTapped(childStore.breed.id))
                                             }
                                             .onAppear {
                                                 store.send(.rowAppeared(childStore.breed.id))

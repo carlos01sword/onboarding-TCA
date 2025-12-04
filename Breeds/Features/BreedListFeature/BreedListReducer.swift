@@ -34,7 +34,7 @@ struct BreedListReducer {
         case alert(PresentationAction<Alert>)
         case breeds(IdentifiedAction<Breed.ID, BreedCellReducer.Action>)
         case breedsResponse(TaskResult<[Breed]>)
-        case breedTapped(Breed)
+        case breedTapped(Breed.ID)
         case detail(PresentationAction<DetailReducer.Action>)
         case fetchBreeds
         case loadMore
@@ -108,8 +108,8 @@ struct BreedListReducer {
                 }
                 return .none
 
-            case .breedTapped(let breed):
-                guard let existingCellState = state.breeds[id: breed.id] else {
+            case .breedTapped(let id):
+                guard let existingCellState = state.breeds[id: id] else {
                     return .none
                 }
                 state.detail = DetailReducer.State(cell: existingCellState)
