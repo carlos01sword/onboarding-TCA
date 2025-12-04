@@ -39,6 +39,7 @@ struct BreedListReducer {
         case fetchBreeds
         case loadMore
         case binding(BindingAction<State>)
+        case rowAppeared(Breed.ID)
 
         @CasePathable
         enum Alert: Equatable{}
@@ -113,6 +114,18 @@ struct BreedListReducer {
                 }
                 state.detail = DetailReducer.State(cell: existingCellState)
                 return .none
+
+            case .rowAppeared(let id):
+                guard state.searchQuery.isEmpty else {
+                    return .none
+                }
+                guard state.canLoadMore else {
+                    return .none
+                }
+                guard id == state.breeds.last?.id else {
+                    return .none
+                }
+                return .send(.loadMore)
 
             case .alert:
                 return .none

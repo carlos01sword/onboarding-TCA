@@ -35,9 +35,7 @@ struct BreedListView: View {
                                                 store.send(.breedTapped(childStore.state.breed))
                                             }
                                             .onAppear {
-                                                if store.searchQuery.isEmpty && id == store.breeds.last?.id {
-                                                    store.send(.loadMore)
-                                                }
+                                                store.send(.rowAppeared(childStore.breed.id))
                                             }
                                     }
                                 }
