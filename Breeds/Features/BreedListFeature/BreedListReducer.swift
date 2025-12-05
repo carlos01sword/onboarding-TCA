@@ -6,13 +6,28 @@ struct BreedListReducer {
 
     @ObservableState
     struct State: Equatable {
+
+        // MARK: - Shared Dependencies
+        @ObservationStateIgnored
+        @Shared(.favoriteBreeds) var favoriteBreeds
+
+        // MARK: - Core Data
         var breeds: IdentifiedArrayOf<BreedCellReducer.State> = []
+
+        // MARK: - UI and Search State
+        var searchQuery: String = ""
         var isLoading: Bool = false
         var errorMessage: String?
-        @Presents var detail: DetailReducer.State?
+
+        // MARK: - Pagination
         var currentPage: Int = 0
         var canLoadMore: Bool = true
-        var searchQuery: String = ""
+
+        // MARK: - Child Destinations
+        @Presents var detail: DetailReducer.State?
+        @Presents var alert: AlertState<Action.Alert>?
+
+        // MARK: - Computed Properties
         var hasBreeds: Bool { !breeds.isEmpty }
         var isLoadingPlaceholderVisible: Bool { breeds.isEmpty && isLoading }
         var isSearchEmptyStateVisible: Bool { filteredBreeds.isEmpty && !searchQuery.isEmpty }
@@ -22,17 +37,12 @@ struct BreedListReducer {
                 searchQuery.isEmpty || $0.breed.name.localizedCaseInsensitiveContains(searchQuery)
             }
         }
-
-
-        @Presents var alert: AlertState<Action.Alert>?
-
-        @ObservationStateIgnored
-        @Shared(.favoriteBreeds) var favoriteBreeds
-
     }
 
     enum Action: BindableAction, Equatable {
 
+
+        /// Actions triggered directly by the User or the SwiftUI View lifecycle
         enum View: Equatable {
             case onAppear
             case loadMoreTriggered
@@ -40,17 +50,23 @@ struct BreedListReducer {
             case rowAppeared(Breed.ID)
         }
 
+        /// Actions triggered by the System and Reducer (side effects)
         enum Internal: Equatable {
             case fetchBreeds
             case breedsResponse(TaskResult<[Breed]>)
         }
 
+        /// Actions sent to communicate with parent (current 0)
         enum Delegate: Equatable {}
 
+
+        /// Cases
         case view(View)
         case `internal`(Internal)
         case delegate(Delegate)
 
+
+        /// Child and system cases
         case binding(BindingAction<State>)
         case breeds(IdentifiedAction<Breed.ID, BreedCellReducer.Action>)
         case detail(PresentationAction<DetailReducer.Action>)
@@ -69,6 +85,7 @@ struct BreedListReducer {
         Reduce { state, action in
             switch action {
 
+            // MARK: - View Actions
             case .view(let viewAction):
                 switch viewAction {
 
@@ -97,6 +114,7 @@ struct BreedListReducer {
                     return .send(.view(.loadMoreTriggered))
                 }
 
+            // MARK: - Internal Actions
             case .internal(let internalAction):
                 switch internalAction {
 
@@ -143,6 +161,7 @@ struct BreedListReducer {
                     return .none
                 }
 
+            // MARK: - Child and Delegate Actions
             case .breeds, .detail, .alert, .delegate, .binding:
                 return .none
 
@@ -153,6 +172,7 @@ struct BreedListReducer {
         .ifLet(\.alert, action: \.alert)
     }
 
+    // MARK: - Helper to create API Effect
     private func fetchBreeds(page: Int) -> Effect<Action> {
         .run { send in
             await send(
