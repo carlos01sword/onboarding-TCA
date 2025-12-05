@@ -41,7 +41,6 @@ struct BreedListReducer {
 
     enum Action: BindableAction, Equatable {
 
-
         /// Actions triggered directly by the User or the SwiftUI View lifecycle
         enum View: Equatable {
             case onAppear
