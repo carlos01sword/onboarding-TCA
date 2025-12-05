@@ -18,9 +18,8 @@ struct BreedListReducer {
         var isSearchEmptyStateVisible: Bool { filteredBreeds.isEmpty && !searchQuery.isEmpty }
 
         var filteredBreeds: IdentifiedArrayOf<BreedCellReducer.State> {
-            guard !searchQuery.isEmpty else { return breeds }
-            return breeds.filter {
-                $0.breed.name.localizedCaseInsensitiveContains(searchQuery)
+            breeds.filter {
+                searchQuery.isEmpty || $0.breed.name.localizedCaseInsensitiveContains(searchQuery)
             }
         }
 
