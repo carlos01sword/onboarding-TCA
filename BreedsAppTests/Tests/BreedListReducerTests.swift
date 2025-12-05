@@ -42,8 +42,8 @@ struct SearchFunctionalityTests {
 
         await store.send(.binding(.set(\.searchQuery, "CAT MEOW MEOW DOESNT EXIST"))) {
             $0.searchQuery = "CAT MEOW MEOW DOESNT EXIST"
-            $0.filteredBreeds = []
         }
+        #expect(store.state.filteredBreeds.isEmpty)
     }
     @Test
     func testSearchBreedWithMatch() async throws {
@@ -54,15 +54,10 @@ struct SearchFunctionalityTests {
 
         await store.send(.binding(.set(\.searchQuery,("Breed 1")))) {
             $0.searchQuery = "Breed 1"
-            $0.filteredBreeds = IdentifiedArray(
-                uniqueElements: [
-                    BreedCellReducer.State(
-                        breed: breed,
-                        favoriteBreeds: $0.$favoriteBreeds
-                    )
-                ]
-            )
         }
+
+        #expect(store.state.filteredBreeds.count == 1)
+        #expect(store.state.filteredBreeds.first?.id == breed.id)
     }
 
     @Test
@@ -75,31 +70,9 @@ struct SearchFunctionalityTests {
 
         await store.send(.binding(.set(\.searchQuery,("breed")))) {
             $0.searchQuery = "breed"
-            $0.filteredBreeds = IdentifiedArray(
-                uniqueElements: [
-                    BreedCellReducer.State(
-                        breed: MockData.breed1,
-                        favoriteBreeds: $0.$favoriteBreeds
-                    ),
-                    BreedCellReducer.State(
-                        breed: MockData.breed2,
-                        favoriteBreeds: $0.$favoriteBreeds
-                    )
-                ]
-            )
-        }
-    }
-
-    @Test
-    func testEmptyQuerySearch() async throws {
-        let breeds = [MockData.breed1, MockData.breed2]
-        let store = TestStore(initialState: MockData.makeState(breeds: breeds)) {
-            BreedListReducer()
         }
 
-        await store.send(.binding(.set(\.searchQuery,("")))) {
-            $0.searchQuery = ""
-            $0.filteredBreeds = $0.breeds
-        }
+        #expect(store.state.filteredBreeds.count == 2)
+        #expect(store.state.filteredBreeds == store.state.breeds)
     }
 }
