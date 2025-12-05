@@ -32,10 +32,10 @@ struct BreedListView: View {
                                         
                                         BreedRowView(store: childStore)
                                             .onTapGesture {
-                                                store.send(.breedTapped(childStore.breed.id))
+                                                store.send(.view(.breedTapped(id)))
                                             }
                                             .onAppear {
-                                                store.send(.rowAppeared(childStore.breed.id))
+                                                store.send(.view(.rowAppeared(id)))
                                             }
                                     }
                                 }
@@ -53,9 +53,7 @@ struct BreedListView: View {
             }
             .navigationTitle("🐈 Cat Breeds")
             .onAppear {
-                if store.breeds.isEmpty {
-                    store.send(.fetchBreeds)
-                }
+                store.send(.view(.onAppear))
             }
             .navigationDestination(
                 item: $store.scope(state: \.detail, action: \.detail)
