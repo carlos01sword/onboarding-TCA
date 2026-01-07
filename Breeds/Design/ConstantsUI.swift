@@ -27,6 +27,7 @@ public struct ConstantsUI {
 
     // Padding
     static let defaultPadding: CGFloat = 20
+    static let smallPadding: CGFloat = 12
 
     //Frames
     static let imageCardFrameSize: CGFloat = 350

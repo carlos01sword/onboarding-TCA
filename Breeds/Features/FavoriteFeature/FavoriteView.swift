@@ -11,6 +11,7 @@ struct FavoriteView: View {
             }
             else {
                 ScrollView {
+                    AverageTabView(breeds: store.favoriteBreeds)
                     LazyVStack {
                         ForEach(store.favoriteBreeds) { breed in
                             Button {
@@ -52,7 +53,7 @@ struct FavoriteView: View {
     #Preview {
         FavoriteView(
             store: Store(initialState: FavoriteReducer.State(
-                favoriteBreeds: Shared(value: IdentifiedArray(uniqueElements: [] as [Breed]))
+                favoriteBreeds: Shared(value: IdentifiedArray(uniqueElements: [MockData.sampleBreed] as [Breed]))
             )) {
                 FavoriteReducer()
             }

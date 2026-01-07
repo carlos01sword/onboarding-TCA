@@ -3,59 +3,62 @@ import SwiftUI
 
 struct BreedListView: View {
     @Bindable var store: StoreOf<BreedListReducer>
-
+    
     var body: some View {
         NavigationStack {
-            ZStack {
-                if store.breeds.isEmpty && store.isLoading {
-                    ProgressView("Loading breeds...")
-                        .progressViewStyle(CircularProgressViewStyle())
-                } else if store.breeds.isEmpty{
-                    BreedsEmptyView()
-                } else {
-                    ScrollView {
-                        LazyVStack {
-                            ForEachStore(
-                                self.store.scope(state: \.breeds, action: \.breeds)
-                            ) { breedStore in
-                                let breed = breedStore.state.breed
-                                Button {
-                                    store.send(.breedTapped(breed))
-                                } label: {
-                                    BreedRowView(store: breedStore)
-                                }
-                                .onAppear {
-                                    if breed.id == store.breeds.last?.id {
-                                        store.send(.loadMore)
+            VStack {
+                if store.hasBreeds {
+                    SearchBar(text: $store.searchQuery)
+                    .padding(.bottom, ConstantsUI.defaultVerticalSpacing)
+                }
+                
+                ZStack {
+                    if store.isLoadingPlaceholderVisible {
+                        ProgressView("Loading breeds...")
+                            .progressViewStyle(CircularProgressViewStyle())
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        
+                    } else if store.breeds.isEmpty {
+                        BreedsEmptyView()
+                        
+                    } else if store.isSearchEmptyStateVisible {
+                        SearchEmptyStateView(searchText: store.searchQuery)
+                        
+                    } else {
+                        ScrollView {
+                            LazyVStack {
+                                ForEach(store.filteredBreeds.ids, id: \.self) { id in
+                                    if let childStore = store.scope(state: \.breeds[id: id], action: \.breeds[id: id]) {
+                                        
+                                        BreedRowView(store: childStore)
+                                            .onTapGesture {
+                                                store.send(.view(.breedTapped(id)))
+                                            }
+                                            .onAppear {
+                                                store.send(.view(.rowAppeared(id)))
+                                            }
                                     }
                                 }
+                                if store.isLoading && !store.breeds.isEmpty {
+                                    ProgressView()
+                                        .padding()
+                                }
                             }
-                            if store.isLoading && !store.breeds.isEmpty {
-                                ProgressView()
-                                    .padding()
-                            }
+                            .contentShape(Rectangle())
+                            .padding(.horizontal)
+                            .padding(.bottom, ConstantsUI.defaultVerticalSpacing)
                         }
-                        .contentShape(Rectangle())
-                        .padding(.horizontal)
-                        .padding(.vertical, ConstantsUI.defaultVerticalSpacing)
                     }
                 }
             }
             .navigationTitle("🐈 Cat Breeds")
             .onAppear {
-                if store.breeds.isEmpty {
-                    store.send(.fetchBreeds)
-                }
+                store.send(.view(.onAppear))
             }
             .navigationDestination(
-                item: Binding(
-                    get: { store.detail?.cell.breed },
-                    set: { _ in store.send(.dismissDetail) }
-                )
-            ) { _ in
-                if let detailStore = store.scope(state: \.detail, action: \.detail) {
-                    DetailView(store: detailStore)
-                }
+                item: $store.scope(state: \.detail, action: \.detail)
+            ) { detailStore in
+                DetailView(store: detailStore)
             }
             .alert($store.scope(state: \.alert, action: \.alert))
         }
